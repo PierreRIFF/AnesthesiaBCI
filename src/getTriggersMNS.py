@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Get triggers from USB device
+Get triggers from MNS device
 """
 
 import usb.core
 import usb.util
+import array as a
 import sys
 
 
@@ -15,23 +16,7 @@ print(device)
 endpoint = device[0][(0,0)][0] # first endpoint
 # device[configIndex][(interfaceIndex,interfaceAlt)][endpointIndex]
 
-# ## Device configuration
-# print('********************')
-# print('Configuration ...')
-# c = 1
-# for config in device:
-#     print('Config # ', c)
-#     print('Interfaces : ', config.bNumInterfaces)
-#     for i in range(config.bNumInterfaces):
-#         if device.is_kernel_driver_active(i):
-#             try:
-#                 device.detach_kernel_driver(i)
-#             except usb.core.USBError as e:
-#                 sys.exit("Could not detatch kernel driver: %s" % str(e))
-#         print('Interface # ', i)
-#     c+=1
-
-# Set configuration
+## Device configuration
 try:
     device.reset()
     device.set_configuration()
@@ -43,38 +28,22 @@ print('********************')
 ## Read a data packet
 print('Triggers :')
 collected = 0
-attempts = 10
+attempts = 100
 data = None
 while collected < attempts :
     try:
         data = device.read(endpoint.bEndpointAddress,endpoint.wMaxPacketSize)
         collected += 1
-        print(data)
+        if data != a.array('B', [49, 96]): # default trigger
+            print(data)
     except usb.core.USBError as e:
         data = None
         if e.args == ('Operation timed out',):
             continue
 
-# ## Release device
-# print('********************')
-# print('Releasing device ...')
-# c = 1
-# for config in device:
-#     print('Config # ', c)
-#     print('Interfaces : ', config.bNumInterfaces)
-#     for i in range(config.bNumInterfaces):
-#         # Release the device
-#         usb.util.release_interface(device, i)
-#         # Reattach the device to the OS kernel
-#         device.attach_kernel_driver(i)
-#         print('Interface # ', i)
-#     c+=1
-# print('Done !')
-# print('********************')
-
 
 """
-Notes
+Display
 """
 # DEVICE ID 0403:f601 on Bus 001 Address 012 =================
 #  bLength                :   0x12 (18 bytes)
@@ -124,4 +93,4 @@ Notes
 #        bmAttributes     :    0x2 Bulk
 #        wMaxPacketSize   :   0x40 (64 bytes)
 #        bInterval        :    0x0
-# return array('B', [49, 96])
+# Triggers : array('B', [49, 96])
