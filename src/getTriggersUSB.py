@@ -10,7 +10,7 @@ import array as a
 
 
 # Hexadecimal vendor and product values (remove '0x' if decimal)
-device = usb.core.find(idVendor=0x****, idProduct=0x****)
+device = usb.core.find(idVendor=0x046d, idProduct=0xc534)
 print(device)
 
 endpoint = device[0][(1,0)][0] # first endpoint
@@ -44,13 +44,13 @@ print('********************')
 ## Read a data packet
 print('Triggers :')
 collected = 0
-attempts = 10
+attempts = 15
 data = None
 while collected < attempts :
     try:
         data = device.read(endpoint.bEndpointAddress,endpoint.wMaxPacketSize)
-        collected += 1
-        if data != a.array('B', [0, 0, 0]):
+        if data[1] != 0 or data[6] != 0:
+            collected += 1
             print(data)
     except usb.core.USBError as e:
         data = None
